@@ -13,7 +13,7 @@ email = notxmonader@gmail.com
 
 """
 
-var d = parseINI(sample1)
+var d = parseIni(sample1)
 
 # doAssert(d.sectionsCount() == 2)
 doAssert(d.getProperty("general", "appname") == "configparser")
@@ -29,6 +29,6 @@ doAssert(d.hasProperty("author", "name") == true)
 d.deleteProperty("author", "name")
 doAssert(d.hasProperty("author", "name") == false)
 
-echo d.toINIString()
+echo d.toIniString()
 let s = d.getSection("author")
 echo $s

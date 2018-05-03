@@ -1,6 +1,6 @@
 # configparser
 # Copyright xmonader
-# pure INI configurations parser
+# pure Ini configurations parser
 import tables, strutils
 
 
@@ -17,60 +17,60 @@ proc newSection*() : Section =
 
     return s
 
-proc `$`*(this: Section) : string =
+proc `$`*(this: Section): string =
     return "<Section" & $this.properties & " >"
 
-type INI = ref object
+type Ini = ref object
     sections: Table[string, Section]
 
-proc newINI*() : INI = 
-    var ini = INI()
+proc newIni*(): Ini = 
+    var ini = Ini()
     ini.sections = initTable[string, Section]()
     return ini
 
-proc `$`*(this: INI) : string = 
-    return "<INI " & $this.sections & " >"
+proc `$`*(this: Ini): string = 
+    return "<Ini " & $this.sections & " >"
 
-proc setSection*(this: INI, name: string, section: Section) =
+proc setSection*(this: Ini, name: string, section: Section) =
     this.sections[name] = section
 
-proc getSection*(this: INI, name: string): Section =
+proc getSection*(this: Ini, name: string): Section =
     return this.sections.getOrDefault(name)
 
-proc hasSection*(this: INI, name: string): bool =
+proc hasSection*(this: Ini, name: string): bool =
     return this.sections.contains(name)
 
-proc deleteSection*(this: INI, name:string) =
+proc deleteSection*(this: Ini, name:string) =
     this.sections.del(name)
 
-proc sectionsCount*(this: INI) : int = 
+proc sectionsCount*(this: Ini) : int = 
     echo $this.sections
     return len(this.sections)
 
-proc hasProperty*(this: INI, sectionName: string, key: string): bool=
+proc hasProperty*(this: Ini, sectionName: string, key: string): bool=
     return this.sections.contains(sectionName) and this.sections[sectionName].properties.contains(key)
 
-proc setProperty*(this: INI, sectionName: string, key: string, value:string) =
+proc setProperty*(this: Ini, sectionName: string, key: string, value: string) =
     echo $this.sections
     if this.sections.contains(sectionName):
         this.sections[sectionName].setProperty(key, value)
     else:
-        raise newException(ValueError, "INI doesn't have section " & sectionName)
+        raise newException(ValueError, "Ini doesn't have section " & sectionName)
 
-proc getProperty*(this: INI, sectionName: string, key: string) : string =
+proc getProperty*(this: Ini, sectionName: string, key: string): string =
     if this.sections.contains(sectionName):
         return this.sections[sectionName].properties.getOrDefault(key)
     else:
-        raise newException(ValueError, "INI doesn't have section " & sectionName)
+        raise newException(ValueError, "Ini doesn't have section " & sectionName)
 
 
-proc deleteProperty*(this: INI, sectionName: string, key: string) =
+proc deleteProperty*(this: Ini, sectionName: string, key: string) =
     if this.sections.contains(sectionName) and this.sections[sectionName].properties.contains(key):
         this.sections[sectionName].properties.del(key)
     else:
-        raise newException(ValueError, "INI doesn't have section " & sectionName)
+        raise newException(ValueError, "Ini doesn't have section " & sectionName)
 
-proc toINIString*(this: INI, sep:char='=') : string =
+proc toIniString*(this: Ini, sep:char='='): string =
     var output = ""
     for sectName, section in this.sections:
         output &= "[" & sectName & "]" & "\n"
@@ -80,13 +80,14 @@ proc toINIString*(this: INI, sep:char='=') : string =
     return output
 
 
-type parserState = enum
-    readSection, readKV
+type
+    ParserState = enum
+        readSection, readKV
 
 
-proc parseINI*(s: string) : INI = 
-    var ini = newINI()
-    var state: parserState = readSection
+proc parseIni*(s: string): Ini = 
+    var ini = newIni()
+    var state: ParserState = readSection
     let lines = s.splitLines
     
     var currentSectionName: string = ""

@@ -2,7 +2,7 @@
 
 version       = "0.1.0"
 author        = "xmonader"
-description   = "pure INI configurations parser"
+description   = "pure Ini configurations parser"
 license       = "MIT"
 srcDir        = "src"
 

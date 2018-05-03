@@ -1,13 +1,11 @@
 # Nim configparser
-this is a pure [INI](https://en.wikipedia.org/wiki/INI_file) parser for nim
+this is a pure [Ini](https://en.wikipedia.org/wiki/Ini_file) parser for nim
 
 > Nim has advanced [parsecfg](https://nim-lang.org/docs/parsecfg.html)
 
 ## Example 
 
 ```nim
-import configparser
-
 let sample1 = """
 
 [general]
@@ -21,7 +19,7 @@ email = notxmonader@gmail.com
 
 """
 
-var d = parseINI(sample1)
+var d = parseIni(sample1)
 
 # doAssert(d.sectionsCount() == 2)
 doAssert(d.getProperty("general", "appname") == "configparser")
@@ -37,16 +35,16 @@ doAssert(d.hasProperty("author", "name") == true)
 d.deleteProperty("author", "name")
 doAssert(d.hasProperty("author", "name") == false)
 
-echo d.toINIString()
+echo d.toIniString()
 let s = d.getSection("author")
 echo $s
 ```
 
 
 ## How to
-You can certainly use regular expressions [python configparser](https://github.com/python/cpython/blob/master/Lib/configparser.py#L559), but we will go for a simpler approach
+You can certainly use regular expressions, like pythons configparser, but we will go for a simpler approach here, also we want to keep it pure so we don't depend on `pcre`
 
-### INI sample
+### Ini sample
 ```ini
 
 [general]
@@ -57,7 +55,7 @@ version = 0.1
 name = xmonader
 email = notxmonader@gmail.com
 ```
-INI file consists of one or more sections and each section consists of one or more key value pairs separated by `=`
+Ini file consists of one or more sections and each section consists of one or more key value pairs separated by `=`
 
 
 ### Define your data types
@@ -91,76 +89,76 @@ To create new Section object
 proc `$`*(this: Section) : string =
     return "<Section" & $this.properties & " >"
 ```
-Simple `toString` proc using `*` operator
+Simple `toString` proc using `$` operator
 ```nim
-type INI = ref object
+type Ini = ref object
     sections: Table[string, Section]
 ```
-`INI` type represents the whole document and contains a table `section` from `sectionName` to `Section` object.
+`Ini` type represents the whole document and contains a table `section` from `sectionName` to `Section` object.
 
 ```
-proc newINI*() : INI = 
-    var ini = INI()
+proc newIni*() : Ini = 
+    var ini = Ini()
     ini.sections = initTable[string, Section]()
     return ini
 ```
-To craete new INI object
+To craete new Ini object
 ```nim
-proc `$`*(this: INI) : string = 
-    return "<INI " & $this.sections & " >"
+proc `$`*(this: Ini) : string = 
+    return "<Ini " & $this.sections & " >"
 ```
-define friendly `toString` proc using `*` operator
+define friendly `toString` proc using `$` operator
 
 
 ### Define API
 ```
-proc setSection*(this: INI, name: string, section: Section) =
+proc setSection*(this: Ini, name: string, section: Section) =
     this.sections[name] = section
 
-proc getSection*(this: INI, name: string): Section =
+proc getSection*(this: Ini, name: string): Section =
     return this.sections.getOrDefault(name)
 
-proc hasSection*(this: INI, name: string): bool =
+proc hasSection*(this: Ini, name: string): bool =
     return this.sections.contains(name)
 
-proc deleteSection*(this: INI, name:string) =
+proc deleteSection*(this: Ini, name:string) =
     this.sections.del(name)
 
-proc sectionsCount*(this: INI) : int = 
+proc sectionsCount*(this: Ini) : int = 
     echo $this.sections
     return len(this.sections)
 ```
-Some helper procs around INI objects for manipulating sections.
+Some helper procs around Ini objects for manipulating sections.
 
 ```nim
 
-proc hasProperty*(this: INI, sectionName: string, key: string): bool=
+proc hasProperty*(this: Ini, sectionName: string, key: string): bool=
     return this.sections.contains(sectionName) and this.sections[sectionName].properties.contains(key)
 
-proc setProperty*(this: INI, sectionName: string, key: string, value:string) =
+proc setProperty*(this: Ini, sectionName: string, key: string, value:string) =
     echo $this.sections
     if this.sections.contains(sectionName):
         this.sections[sectionName].setProperty(key, value)
     else:
-        raise newException(ValueError, "INI doesn't have section " & sectionName)
+        raise newException(ValueError, "Ini doesn't have section " & sectionName)
 
-proc getProperty*(this: INI, sectionName: string, key: string) : string =
+proc getProperty*(this: Ini, sectionName: string, key: string) : string =
     if this.sections.contains(sectionName):
         return this.sections[sectionName].properties.getOrDefault(key)
     else:
-        raise newException(ValueError, "INI doesn't have section " & sectionName)
+        raise newException(ValueError, "Ini doesn't have section " & sectionName)
 
 
-proc deleteProperty*(this: INI, sectionName: string, key: string) =
+proc deleteProperty*(this: Ini, sectionName: string, key: string) =
     if this.sections.contains(sectionName) and this.sections[sectionName].properties.contains(key):
         this.sections[sectionName].properties.del(key)
     else:
-        raise newException(ValueError, "INI doesn't have section " & sectionName)
+        raise newException(ValueError, "Ini doesn't have section " & sectionName)
 ```
-More helpers around properties in the section objects managed by `INI` object
+More helpers around properties in the section objects managed by `Ini` object
 
 ```nim
-proc toINIString*(this: INI, sep:char='=') : string =
+proc toIniString*(this: Ini, sep:char='=') : string =
     var output = ""
     for sectName, section in this.sections:
         output &= "[" & sectName & "]" & "\n"
@@ -169,29 +167,29 @@ proc toINIString*(this: INI, sep:char='=') : string =
         output &= "\n"
     return output
 ```
-Simple proc `toINIString` to convert the nim structures into INI text string
+Simple proc `toIniString` to convert the nim structures into Ini text string
 
 ### Parse!
 OK, here comes the cool part
 
 #### Parser states
 ```nim
-type parserState = enum
+type ParserState = enum
     readSection, readKV
 ```
 Here we have two states
 - readSection: when we are supposed to extract section name from the current line
 - readKV: when we are supposed to read the line in key value pair mode
 
-#### ParseINI proc
+#### ParseIni proc
 ```nim
-proc parseINI*(s: string) : INI = 
+proc parseIni*(s: string) : Ini = 
 ```
-Here we define a proc `parseINI` that takes a string `s` and creates an `INI` object
+Here we define a proc `parseIni` that takes a string `s` and creates an `Ini` object
 
 ```nim
-    var ini = newINI()
-    var state: parserState = readSection
+    var ini = newIni()
+    var state: ParserState = readSection
     let lines = s.splitLines
     
     var currentSectionName: string = ""
@@ -246,4 +244,7 @@ if `state` is `readKV`
 ```
 Here we return the populated `ini` object.
 
+
+# Thanks 
+To you for taking the time to read the tutorial and thanks to everyone at #nim on gitter for their valuable reviews.
 Feel free to send me PRs to make this tutorial/library better :)
