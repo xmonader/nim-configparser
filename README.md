@@ -222,11 +222,13 @@ if line startswith `[` and ends with `]` then we set parser state to `readSectio
             currentSectionName = line[1..<line.len-1]
             ini.setSection(currentSectionName, currentSection)
             state = readKV
+            continue
 ```
 if parser `state` is `readSection`
 - extract section name `between [ and ]`
 - add section object to the ini under the current section name
 - change `state` to `readKV` to read key value pairs
+- continue the loop on the nextline as we're done processing the section name.
 
 ```nim
         if state == readKV:

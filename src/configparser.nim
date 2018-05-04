@@ -1,7 +1,7 @@
 # configparser
 # Copyright xmonader
 # pure Ini configurations parser
-import tables, strutils
+import tables, strutils, strformat
 
 
 type Section = ref object
@@ -93,16 +93,21 @@ proc parseIni*(s: string): Ini =
     var currentSectionName: string = ""
     var currentSection = newSection()
     
-    for line in lines:
+    for rawLine in lines:
+        let line = rawLine.strip()
         if line.strip() == "" or line.startsWith(";") or line.startsWith("#"):
             continue
-        if line.startsWith("[") and line.endsWith("]"):
-            state = readSection
+        if line.startsWith("["):
+            if line.endsWith("]"):
+                state = readSection
+            else:
+                raise newException(ValueError, fmt("Excpected line {line} to start with [ and end with ]"))
 
         if state == readSection:
             currentSectionName = line[1..<line.len-1]
             ini.setSection(currentSectionName, currentSection)
             state = readKV
+            continue
 
         if state == readKV:
             let parts = line.split({'='})
@@ -110,6 +115,8 @@ proc parseIni*(s: string): Ini =
                 let key = parts[0].strip()
                 let val = parts[1].strip()
                 ini.setProperty(currentSectionName, key, val)
+            else:
+                raise newException(ValueError, fmt("Expected line {line} to have key = value"))
     return ini
         
             

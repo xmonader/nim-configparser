@@ -10,7 +10,20 @@ version = 0.1
 name = xmonader
 email = notxmonader@gmail.com
 
+"""
 
+let sample2 = """
+[general
+appname = configparser
+version = 1.4
+
+"""
+
+let sample3 = """
+
+[general]
+appname = configparser
+version 1.4
 """
 
 var d = parseIni(sample1)
@@ -32,3 +45,14 @@ doAssert(d.hasProperty("author", "name") == false)
 echo d.toIniString()
 let s = d.getSection("author")
 echo $s
+
+try:
+  var d = parseIni(sample2)
+except ValueError:
+  echo "Error " & getCurrentExceptionMsg()
+
+
+try:
+  var d = parseIni(sample3)
+except ValueError:
+  echo "Error " & getCurrentExceptionMsg()
