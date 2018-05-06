@@ -4,7 +4,7 @@
 import tables, strutils, strformat
 
 
-type Section = ref object
+type Section* = ref object
     properties: Table[string, string]
 
 
@@ -20,7 +20,7 @@ proc newSection*() : Section =
 proc `$`*(this: Section): string =
     return "<Section" & $this.properties & " >"
 
-type Ini = ref object
+type Ini* = ref object
     sections: Table[string, Section]
 
 proc newIni*(): Ini = 
