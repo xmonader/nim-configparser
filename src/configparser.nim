@@ -115,6 +115,10 @@ proc parseIni*(s: string): Ini =
                 let key = parts[0].strip()
                 let val = parts[1].strip()
                 ini.setProperty(currentSectionName, key, val)
+            elif len(parts) > 2:
+                let key = parts[0].strip()
+                let val = line.replace(key & " =", "").strip()
+                ini.setProperty(currentSectionName, key, val)
             else:
                 raise newException(ValueError, fmt("Expected line {line} to have key = value"))
     return ini
