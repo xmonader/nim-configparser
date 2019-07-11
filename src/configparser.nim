@@ -51,7 +51,6 @@ proc hasProperty*(this: Ini, sectionName: string, key: string): bool=
     return this.sections.contains(sectionName) and this.sections[sectionName].properties.contains(key)
 
 proc setProperty*(this: Ini, sectionName: string, key: string, value: string) =
-    echo $this.sections
     if this.sections.contains(sectionName):
         this.sections[sectionName].setProperty(key, value)
     else:
