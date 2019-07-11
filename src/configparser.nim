@@ -51,7 +51,6 @@ proc hasProperty*(this: Ini, sectionName: string, key: string): bool=
     return this.sections.contains(sectionName) and this.sections[sectionName].properties.contains(key)
 
 proc setProperty*(this: Ini, sectionName: string, key: string, value: string) =
-    echo $this.sections
     if this.sections.contains(sectionName):
         this.sections[sectionName].setProperty(key, value)
     else:
@@ -114,6 +113,10 @@ proc parseIni*(s: string): Ini =
             if len(parts) == 2:
                 let key = parts[0].strip()
                 let val = parts[1].strip()
+                ini.setProperty(currentSectionName, key, val)
+            elif len(parts) > 2:
+                let key = parts[0].strip()
+                let val = line.replace(key & " =", "").strip()
                 ini.setProperty(currentSectionName, key, val)
             else:
                 raise newException(ValueError, fmt("Expected line {line} to have key = value"))
