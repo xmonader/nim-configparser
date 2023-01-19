@@ -90,8 +90,8 @@ proc parseIni*(s: string): Ini =
     let lines = s.splitLines
     
     var currentSectionName: string = ""
-    var currentSection = newSection()
-    
+    var currentSection: Section
+
     for rawLine in lines:
         let line = rawLine.strip()
         if line.strip() == "" or line.startsWith(";") or line.startsWith("#"):
@@ -104,6 +104,7 @@ proc parseIni*(s: string): Ini =
 
         if state == readSection:
             currentSectionName = line[1..<line.len-1]
+            currentSection = newSection()
             ini.setSection(currentSectionName, currentSection)
             state = readKV
             continue
