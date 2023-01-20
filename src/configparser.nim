@@ -8,7 +8,7 @@ type Section* = ref object
     properties: Table[string, string]
 
 
-proc setProperty*(this: Section, name: string, value: string) =
+proc setProperty*(this: Section, name: string, value: sink string) =
     this.properties[name] = value
 
 proc newSection*() : Section =
@@ -43,8 +43,7 @@ proc hasSection*(this: Ini, name: string): bool =
 proc deleteSection*(this: Ini, name:string) =
     this.sections.del(name)
 
-proc sectionsCount*(this: Ini) : int = 
-    echo $this.sections
+proc sectionsCount*(this: Ini) : int =
     return len(this.sections)
 
 proc hasProperty*(this: Ini, sectionName: string, key: string): bool=
@@ -90,8 +89,8 @@ proc parseIni*(s: string): Ini =
     let lines = s.splitLines
     
     var currentSectionName: string = ""
-    var currentSection = newSection()
-    
+    var currentSection: Section
+
     for rawLine in lines:
         let line = rawLine.strip()
         if line.strip() == "" or line.startsWith(";") or line.startsWith("#"):
@@ -104,25 +103,18 @@ proc parseIni*(s: string): Ini =
 
         if state == readSection:
             currentSectionName = line[1..<line.len-1]
+            currentSection = newSection()
             ini.setSection(currentSectionName, currentSection)
             state = readKV
             continue
 
         if state == readKV:
-            let parts = line.split({'='})
+            var parts = line.split({'='}, 1)
             if len(parts) == 2:
-                let key = parts[0].strip()
-                let val = parts[1].strip()
-                ini.setProperty(currentSectionName, key, val)
-            elif len(parts) > 2:
-                let key = parts[0].strip()
-                let val = line.replace(key & " =", "").strip()
+                var
+                  key = strip(move parts[0])
+                  val = strip(move parts[1])
                 ini.setProperty(currentSectionName, key, val)
             else:
                 raise newException(ValueError, fmt("Expected line {line} to have key = value"))
     return ini
-        
-            
-        
-
-        
